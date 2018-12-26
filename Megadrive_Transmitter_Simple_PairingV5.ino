@@ -54,23 +54,25 @@ void wakeUp(){
   while (digitalRead(2)==LOW && wakeBreak == 0){
     wakeTimer--;
     Serial.println(wakeTimer); //for debugging
+    if (wakeTimer < 0){
+      wakeTimer=0;
+    }
     if (wakeTimer==0) //time to wake up, run below before resuming normal operation
     {
       radioSerialw[13]=0; //reset sleep mode bit to zero
-      sleepTimer=50000; //set sleeptimer before going back to normal operation
       radio.powerUp();
-      detachInterrupt(0); //in the case of interrupts, only pins 2 and 3 can be used, (1) is pin 3
+      //radio.write(&radioSerialw, sizeof(radioSerialw));
       while (digitalRead(2)==LOW); //Hold code here to prevent power button pressing game button, start normal operation/break loop on button release
+      sleepTimer=50000; //set sleeptimer before going back to normal operation
+      detachInterrupt(0); //in the case of interrupts, only pins 2 and 3 can be used, (1) is pin 3
+      delay(1);
       wakeBreak=1;
-    }
-    if (wakeTimer < 0){
-      wakeTimer=0;
     }
   }
 }
 
 void goSleep(){
-  radioSerialw[13]=1; //tell reciever the pad had gone to sleep
+  radioSerialw[13]=0; //tell reciever the pad has gone to sleep
   radio.stopListening();
   radio.openWritingPipe(wAddress);    
   radio.write(&radioSerialw, sizeof(radioSerialw));
